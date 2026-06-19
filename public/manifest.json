@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Social Youtube",
+  "description": "Shows timestamped YouTube comments as a lightweight chat overlay while videos play.",
+  "version": "0.1.0",
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.youtube.com/*", "https://www.googleapis.com/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options.html",
+  "action": {
+    "default_title": "Social Youtube"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*.css"],
+      "matches": ["https://www.youtube.com/*"]
+    }
+  ]
+}
