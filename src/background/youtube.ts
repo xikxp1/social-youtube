@@ -5,6 +5,10 @@ type YouTubeCommentThreadResponse = {
   nextPageToken?: string;
   items?: YouTubeCommentThread[];
   error?: {
+    errors?: Array<{
+      reason?: string;
+      message?: string;
+    }>;
     message?: string;
   };
 };
@@ -32,6 +36,22 @@ export type YouTubeCommentFetchResult = {
   pageCount: number;
   exhaustedPages: boolean;
 };
+
+function emptyCommentFetchResult(pageCount = 0): YouTubeCommentFetchResult {
+  return {
+    comments: [],
+    rawCommentCount: 0,
+    pageCount,
+    exhaustedPages: false
+  };
+}
+
+function isDisabledCommentsResponse(data: YouTubeCommentThreadResponse): boolean {
+  const message = data.error?.message?.toLowerCase() ?? "";
+  const reasons = data.error?.errors?.map((error) => error.reason?.toLowerCase() ?? "") ?? [];
+
+  return reasons.includes("commentsdisabled") || message.includes("disabled comments");
+}
 
 function mapThreadToRawComment(thread: YouTubeCommentThread): RawComment | null {
   const topLevelComment = thread.snippet?.topLevelComment;
@@ -77,6 +97,10 @@ export async function fetchTimestampCommentsFromYouTube(
     const data = (await response.json()) as YouTubeCommentThreadResponse;
 
     if (!response.ok) {
+      if (isDisabledCommentsResponse(data)) {
+        return emptyCommentFetchResult(pageCount);
+      }
+
       throw new Error(data.error?.message ?? `YouTube API request failed with ${response.status}`);
     }
 
