@@ -34,16 +34,16 @@ input {
 
 .options-header {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: 24px;
   margin-bottom: 24px;
 }
 
-.eyebrow {
-  margin: 0 0 6px;
-  color: #6f6d66;
-  font-size: 13px;
-  font-weight: 650;
+.app-logo {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 auto;
+  border-radius: 18px;
 }
 
 h1 {
@@ -164,6 +164,17 @@ h1 {
   .options-shell {
     width: min(100% - 28px, 620px);
     padding: 24px 0;
+  }
+
+  .options-header {
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .app-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
   }
 
   .settings-grid {

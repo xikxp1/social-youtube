@@ -111,6 +111,7 @@ function OptionsApp() {
   return (
     <main className="options-shell">
       <section className="options-header">
+        <img className="app-logo" src="/icons/icon-128.png" alt="" aria-hidden="true" />
         <div>
           <h1>Social Youtube</h1>
           <p className="lede">
