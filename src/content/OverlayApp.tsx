@@ -179,28 +179,34 @@ export function OverlayApp({ video, videoId }: OverlayAppProps) {
   }, [comments, currentTime, settings]);
 
   useEffect(() => {
-    const visibleKeys = new Set(
-      visibleComments.map((comment) => `${comment.id}-${comment.timestampSeconds}`)
+    const visibleByKey = new Map(
+      visibleComments.map((comment) => [`${comment.id}-${comment.timestampSeconds}`, comment])
     );
 
     setRenderedComments((current) => {
-      const currentByKey = new Map(
-        current.map((comment) => [`${comment.id}-${comment.timestampSeconds}`, comment])
-      );
-      const next: RenderedComment[] = visibleComments.map((comment) => {
-        const key = `${comment.id}-${comment.timestampSeconds}`;
-        window.clearTimeout(removalTimersRef.current.get(key));
-        removalTimersRef.current.delete(key);
-        return { ...comment, state: "entering" };
-      });
+      const next: RenderedComment[] = [];
+      const renderedKeys = new Set<string>();
 
       for (const comment of current) {
         const key = `${comment.id}-${comment.timestampSeconds}`;
-        if (visibleKeys.has(key) || currentByKey.get(key)?.state === "leaving") {
+        const visibleComment = visibleByKey.get(key);
+
+        if (visibleComment) {
+          window.clearTimeout(removalTimersRef.current.get(key));
+          removalTimersRef.current.delete(key);
+          next.push({ ...visibleComment, state: "entering" });
+          renderedKeys.add(key);
+          continue;
+        }
+
+        if (comment.state === "leaving") {
+          next.push(comment);
+          renderedKeys.add(key);
           continue;
         }
 
         next.push({ ...comment, state: "leaving" });
+        renderedKeys.add(key);
         const timer = window.setTimeout(() => {
           removalTimersRef.current.delete(key);
           setRenderedComments((latest) =>
@@ -208,6 +214,17 @@ export function OverlayApp({ video, videoId }: OverlayAppProps) {
           );
         }, EXIT_ANIMATION_MS);
         removalTimersRef.current.set(key, timer);
+      }
+
+      for (const comment of visibleComments) {
+        const key = `${comment.id}-${comment.timestampSeconds}`;
+        if (renderedKeys.has(key)) {
+          continue;
+        }
+
+        window.clearTimeout(removalTimersRef.current.get(key));
+        removalTimersRef.current.delete(key);
+        next.push({ ...comment, state: "entering" });
       }
 
       return next.slice(-5);
